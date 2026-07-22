@@ -1,4 +1,4 @@
-export type StatusColor = 'gray' | 'success' | 'warning' | 'danger';
+export type StatusColor = 'gray' | 'success' | 'warning' | 'danger' | 'info';
 
 export interface StatusBadgeData {
     value: string;

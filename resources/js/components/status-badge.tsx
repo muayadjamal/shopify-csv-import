@@ -9,6 +9,7 @@ const colorClasses: Record<StatusColor, string> = {
     warning:
         'border-transparent bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-200',
     danger: 'border-transparent bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-200',
+    info: 'border-transparent bg-sky-100 text-sky-800 dark:bg-sky-900/50 dark:text-sky-200',
 };
 
 export function StatusBadge({

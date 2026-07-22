@@ -13,6 +13,7 @@ use Filament\Support\Contracts\HasLabel;
 enum ProductImportStatus: string implements HasColor, HasLabel
 {
     case Pending = 'pending';
+    case Processing = 'processing';
     case Success = 'success';
     case Failed = 'failed';
     case Skipped = 'skipped';
@@ -21,7 +22,8 @@ enum ProductImportStatus: string implements HasColor, HasLabel
     {
         return match ($this) {
             self::Pending => 'Pending',
-            self::Success => 'Success',
+            self::Processing => 'Processing',
+            self::Success => 'Successful',
             self::Failed => 'Failed',
             self::Skipped => 'Skipped',
         };
@@ -31,9 +33,10 @@ enum ProductImportStatus: string implements HasColor, HasLabel
     {
         return match ($this) {
             self::Pending => 'gray',
+            self::Processing => 'warning',
             self::Success => 'success',
             self::Failed => 'danger',
-            self::Skipped => 'warning',
+            self::Skipped => 'info',
         };
     }
 

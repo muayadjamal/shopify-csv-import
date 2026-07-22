@@ -68,6 +68,14 @@ class ImportRun extends Model
     }
 
     /**
+     * @return HasMany<ImportLog, $this>
+     */
+    public function logs(): HasMany
+    {
+        return $this->hasMany(ImportLog::class);
+    }
+
+    /**
      * Completion percentage (0–100) based on rows processed so far.
      */
     public function progress(): int

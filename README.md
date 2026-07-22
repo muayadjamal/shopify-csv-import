@@ -1,30 +1,45 @@
 # CSV → Shopify Product Import
 
-A Laravel application that uploads a CSV of products, processes it **asynchronously** on a queue, imports each product into **Shopify** (adding it to a specific collection), and **tracks the status** of every run down to the individual row.
+A Laravel application that uploads a CSV of products, processes it **asynchronously** on a queue, imports each product into **Shopify** via the **GraphQL Admin API** (adding it to a specific collection), and **tracks the status** of every run down to the individual row — with full event logging and failure notifications.
 
-Built for the Vrhunec Senior Backend (PHP/Laravel) technical assessment.
+Built for the Vrhunec technical assessment (CSV to Shopify Product Import System).
 
 ## Features
 
+### Core
+
 - **Upload UI** (React + Inertia): drag-and-drop CSV upload with client-side type/size validation and live upload feedback.
-- **Asynchronous import** (queued job): streams the CSV, maps columns to the Shopify Admin API, creates products, and attaches each to the configured collection.
-- **Status tracking**: per-run status (`pending → processing → completed/failed`), row counts, and a per-row result (success/failed with the Shopify product id or error message).
-- **Live status page**: polls a JSON API endpoint until the run finishes; links each imported product to its Shopify admin page.
-- **Admin panel** (Filament v5): browse import runs, drill into a run, and inspect every imported row.
-- **Resilience**: Shopify rate-limit handling (HTTP 429 + `Retry-After`), partial-failure isolation (one bad row never fails the run), and an idempotent, retryable job.
+- **Asynchronous import** (queued job): streams the CSV, validates rows, maps columns, and imports into Shopify.
+- **Shopify GraphQL integration**: products are created via the Admin GraphQL API using the official `shopify/shopify-api` SDK.
+- **Status tracking**: per-run status (`pending → processing → completed/failed`) and per-row status (`pending / processing / successful / failed`) with error messages.
+- **Dashboard**: an Inertia list + live status page, plus a full **Filament v5** admin panel (import runs, rows, logs, stats).
+
+### Bonus features (all implemented)
+
+- **Update product (upsert)**: products are matched by `handle` — an existing product is **updated** instead of duplicated (GraphQL `productSet`).
+- **Logging**: every import event is written to an `import_logs` table (viewable per-run and globally in the dashboard) **and** to a dedicated `import` log channel on disk, browsable with the bundled **log viewer** (`opcodesio/log-viewer`) at `/log-viewer`.
+- **Error notification system**: when a run finishes with failed rows (or fails outright), admin users receive a **Filament database notification** (the panel bell).
+- **GraphQL**: the entire Shopify integration uses GraphQL queries/mutations with GraphQL error handling (`userErrors` + throttling/`THROTTLED` back-off).
+
+### Resilience
+
+- Rate-limit handling: the SDK retries `429`/`5xx`; GraphQL `THROTTLED` responses back off using the returned query cost.
+- Partial-failure isolation: one bad row never aborts the run.
+- Idempotent & retryable: rows are keyed by number, already-successful rows are skipped, and `productSet` upserts never duplicate a product.
 
 ## Tech stack
 
-| Concern            | Choice                                            |
-|--------------------|---------------------------------------------------|
-| Framework          | Laravel 13, PHP 8.3+                              |
-| Frontend           | React 19 + Inertia (Laravel React starter kit)    |
-| Admin panel        | Filament v5                                       |
-| Queue              | Database driver                                   |
-| Database           | SQLite (default; any Laravel-supported DB works)  |
-| CSV parsing        | `league/csv` (streaming)                          |
-| Shopify            | Admin REST API via Laravel HTTP client            |
-| Tests / quality    | PHPUnit, Pint, Larastan (PHPStan level 7)         |
+| Concern            | Choice                                                        |
+|--------------------|---------------------------------------------------------------|
+| Framework          | Laravel 13, PHP 8.3+                                          |
+| Frontend           | React 19 + Inertia (Laravel React starter kit)                |
+| Admin panel        | Filament v5                                                   |
+| Shopify            | Admin **GraphQL** API via `shopify/shopify-api` SDK           |
+| Queue              | Database driver                                               |
+| Database           | SQLite (default; any Laravel-supported DB works)              |
+| CSV parsing        | `league/csv` (streaming) — see note below                     |
+| Logging / viewer   | `import_logs` table + `import` log channel + `opcodesio/log-viewer` |
+| Tests / quality    | PHPUnit, Pint, Larastan (PHPStan level 7)                     |
 
 ## Architecture
 
@@ -36,11 +51,13 @@ ImportController@store ──► stores file, creates ImportRun (pending) ──
                                                                               │
                                                                               ▼
                                                         ProcessImportRun (queued)
-                                                          • ProductCsvReader   – stream rows
-                                                          • ShopifyProductMapper – CSV → API payload
-                                                          • ProductRowValidator  – validate each row
-                                                          • ShopifyClient        – create product + attach to collection
-                                                          • records ImportedProduct per row, updates run counters
+                                                          • ProductCsvReader     – stream rows
+                                                          • ShopifyProductMapper  – CSV → canonical product
+                                                          • ProductRowValidator   – validate each row
+                                                          • ShopifyProductImporter – upsert via GraphQL + add to collection
+                                                          • ImportLogger          – log every event (DB + file)
+                                                          • records ImportedProduct per row, updates counters
+                                                          • ImportFailuresNotification on failures
       ▲                                                                         │
       │  GET /imports/{run}/status  (ImportRunResource JSON, polled)            │
       └─────────────────────────── status page / Filament admin ◄──────────────┘
@@ -49,13 +66,14 @@ ImportController@store ──► stores file, creates ImportRun (pending) ──
 Key classes:
 
 - `app/Http/Requests/StoreImportRequest.php` — upload validation (Form Request).
-- `app/Jobs/ProcessImportRun.php` — the asynchronous import.
-- `app/Services/Shopify/ShopifyClient.php` — Admin API client with rate-limit handling.
-- `app/Support/Csv/ProductCsvReader.php` — streaming CSV reader.
-- `app/Support/Shopify/ShopifyProductMapper.php` — CSV columns → Shopify product payload (tolerant of header casing/punctuation).
-- `app/Support/Shopify/ProductRowValidator.php` — per-row validation.
+- `app/Jobs/ProcessImportRun.php` — the asynchronous import orchestration.
+- `app/Services/Shopify/Contracts/ShopifyProductImporter.php` — Shopify integration contract.
+- `app/Services/Shopify/GraphqlShopifyImporter.php` — GraphQL implementation (upsert + collection + throttling).
+- `app/Services/Import/ImportLogger.php` — writes events to `import_logs` + the `import` log channel.
+- `app/Notifications/ImportFailuresNotification.php` — admin failure notifications.
+- `app/Support/Shopify/ShopifyProductMapper.php` — CSV columns → canonical product (tolerant of header casing/punctuation).
 - `app/Http/Resources/*` — JSON API resources for all API output.
-- `app/Filament/Resources/ImportRuns/*` — admin panel.
+- `app/Filament/Resources/*`, `app/Filament/Widgets/*` — admin panel (runs, logs, stats).
 
 ## Requirements
 
@@ -77,7 +95,7 @@ php artisan key:generate
 
 # 3. Add your Shopify credentials to .env (see below)
 
-# 4. Database + queue + cache tables
+# 4. Database (creates app, queue, cache, session, notification, log tables)
 touch database/database.sqlite   # if using the default SQLite DB
 php artisan migrate
 
@@ -121,19 +139,20 @@ composer dev
 1. Log in at `/login` with `test@example.com` / `password`.
 2. Go to **Imports → New import** (`/imports/create`) and upload a CSV.
 3. You're redirected to the run's status page, which polls until the import finishes and links each product into Shopify.
-4. Review runs and per-row results in the admin panel at `/admin`.
+4. Review runs, per-row results, the event log, and stats in the admin panel at `/admin`.
+5. Browse raw log files at `/log-viewer` (linked from the admin sidebar as "Log files").
 
-A ready-to-use sample CSV (5 products) is committed at [`samples/shopify-products-csv.csv`](samples/shopify-products-csv.csv) — upload it as-is to try the flow.
+A ready-to-use sample CSV (the assessment's 10 products, with images and weights) is committed at [`samples/shopify-products-csv.csv`](samples/shopify-products-csv.csv) — upload it as-is to try the flow.
 
 ## CSV format
 
 Standard Shopify product export columns. The mapper is tolerant of header casing and punctuation (e.g. both `Body (HTML)` and `Body HTML`, `Type` and `Product Type` work). Recognised columns:
 
-`Handle, Title, Body (HTML), Vendor, Type, Tags, Published, Variant SKU, Variant Price, Variant Compare At Price, Variant Requires Shipping, Variant Taxable, Variant Inventory Tracker, Variant Inventory Qty, Variant Inventory Policy`
+`Handle, Title, Body (HTML), Vendor, Type, Tags, Published, Variant SKU, Variant Price, Variant Compare At Price, Variant Requires Shipping, Variant Taxable, Variant Inventory Tracker, Variant Inventory Qty, Variant Inventory Policy, Variant Fulfillment Service, Variant Weight, Variant Weight Unit, Image Src, Image Position, Image Alt Text`
 
 Each row requires at least a **Title** and a numeric **Variant Price**; rows that fail validation are recorded as failed without aborting the run. A missing `Handle` is derived from the title.
 
-## Testing & quality
+## Testing
 
 ```bash
 php artisan test           # PHPUnit feature + unit tests
@@ -143,11 +162,19 @@ npm run types:check        # TypeScript
 npm run lint:check         # ESLint
 ```
 
-Tests cover the column mapper, row validator, streaming CSV reader, the import job (success, partial failure, idempotent retry, and fatal failure), the upload endpoint (validation + job dispatch), the JSON status endpoint, and the Inertia pages.
+Tests cover the column mapper (incl. images/weight/fulfillment), the GraphQL `productSet` input builder, the row validator, the streaming CSV reader, the import job (success, validation failure, Shopify failure, upsert/update, idempotent retry, event logging, failure notification, fatal failure), the upload endpoint, the JSON status endpoint, and the Inertia pages. The job tests bind an in-memory `ShopifyProductImporter`, so they run without hitting Shopify.
 
-## Notes / decisions
+## Assumptions & design decisions
 
-- The import job is **idempotent**: per-row results are keyed by row number, already-successful rows are skipped on retry, and run counters are recomputed from the stored results rather than incremented — so a retried job never double-imports or double-counts.
-- Rate limits are handled by retrying `429` responses and honouring the `Retry-After` header.
-- All API responses use Laravel **JSON API resources** (`ImportRunResource`, `ImportedProductResource`); validation lives in a **Form Request**.
-- Import runs are created only by uploading a CSV — the admin panel is read-only for runs.
+- **Laravel 13 instead of 12.** The brief asked for Laravel 12; the current React starter kit ships on Laravel 13, and the recruiter was asked whether latest is acceptable. All APIs used are stable across 12/13.
+- **GraphQL over REST.** The bonus asked for GraphQL, so the *only* Shopify integration is GraphQL (`shopify/shopify-api` SDK), behind a `ShopifyProductImporter` interface so the transport is swappable and easily faked in tests.
+- **Upsert by handle.** `productSet` with a `handle` identifier creates or updates, satisfying the "update product if it exists" bonus and making retries safe.
+- **Custom (private) app auth.** The SDK is initialised in private-app mode with the fixed Admin API token; the API key/secret are unused placeholders.
+- **Single default variant per row.** The standard Shopify product CSV is one variant per row, mapped to the `Default Title` option. Multi-variant/option rows are out of scope.
+- **Inventory quantity** is not set via GraphQL (it requires a location-scoped inventory mutation); price, SKU, policy, taxable, weight, and images are.
+- **`maatwebsite/excel` was evaluated but not used:** its `phpspreadsheet` dependency requires PHP `< 8.5` and it targets Laravel ≤ 12, so it is incompatible with this stack (PHP 8.5 / Laravel 13). `league/csv` provides the same clean, streaming API and is used instead.
+- **Auth.** Import and admin routes are authenticated (the starter kit's Fortify auth); a demo user is seeded.
+
+## Video
+
+A short walkthrough of the working application (upload → async import → live status → products in the Shopify collection → admin panel, logs, and notifications) is included with the submission.

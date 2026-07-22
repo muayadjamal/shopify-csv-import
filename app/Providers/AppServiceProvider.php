@@ -2,7 +2,6 @@
 
 namespace App\Providers;
 
-use App\Services\Shopify\ShopifyClient;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -16,15 +15,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->singleton(ShopifyClient::class, function (): ShopifyClient {
-            $config = config('shopify');
-
-            return new ShopifyClient(
-                baseUrl: rtrim((string) $config['store_url'], '/').'/admin/api/'.$config['api_version'].'/',
-                accessToken: (string) $config['access_token'],
-                collectionId: (int) $config['collection_id'],
-            );
-        });
+        //
     }
 
     /**

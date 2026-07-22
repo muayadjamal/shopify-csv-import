@@ -6,6 +6,7 @@ namespace App\Filament\Resources\ImportRuns;
 
 use App\Filament\Resources\ImportRuns\Pages\ListImportRuns;
 use App\Filament\Resources\ImportRuns\Pages\ViewImportRun;
+use App\Filament\Resources\ImportRuns\RelationManagers\LogsRelationManager;
 use App\Filament\Resources\ImportRuns\RelationManagers\ProductsRelationManager;
 use App\Filament\Resources\ImportRuns\Schemas\ImportRunInfolist;
 use App\Filament\Resources\ImportRuns\Tables\ImportRunsTable;
@@ -42,6 +43,7 @@ class ImportRunResource extends Resource
     {
         return [
             ProductsRelationManager::class,
+            LogsRelationManager::class,
         ];
     }
 

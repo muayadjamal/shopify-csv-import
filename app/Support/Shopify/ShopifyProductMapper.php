@@ -39,7 +39,25 @@ class ShopifyProductMapper
 
         $product['variants'] = [self::mapVariant($fields)];
 
+        $image = self::mapImage($fields);
+        if ($image !== []) {
+            $product['images'] = [$image];
+        }
+
         return $product;
+    }
+
+    /**
+     * @param  array<string, string|null>  $fields
+     * @return array<string, mixed>
+     */
+    private static function mapImage(array $fields): array
+    {
+        return array_filter([
+            'src' => self::pick($fields, 'imagesrc'),
+            'position' => self::intOrNull(self::pick($fields, 'imageposition')),
+            'alt' => self::pick($fields, 'imagealttext'),
+        ], static fn ($value) => $value !== null);
     }
 
     /**
@@ -59,6 +77,9 @@ class ShopifyProductMapper
             'inventory_management' => $inventoryTracker !== null ? 'shopify' : null,
             'inventory_quantity' => self::intOrNull(self::pick($fields, 'variantinventoryqty', 'inventoryqty')),
             'inventory_policy' => self::pick($fields, 'variantinventorypolicy', 'inventorypolicy'),
+            'fulfillment_service' => self::pick($fields, 'variantfulfillmentservice', 'fulfillmentservice'),
+            'weight' => self::floatOrNull(self::pick($fields, 'variantweight', 'weight')),
+            'weight_unit' => self::pick($fields, 'variantweightunit', 'weightunit'),
         ], static fn ($value) => $value !== null);
     }
 
@@ -108,5 +129,10 @@ class ShopifyProductMapper
     private static function intOrNull(?string $value): ?int
     {
         return $value === null || ! is_numeric($value) ? null : (int) $value;
+    }
+
+    private static function floatOrNull(?string $value): ?float
+    {
+        return $value === null || ! is_numeric($value) ? null : (float) $value;
     }
 }

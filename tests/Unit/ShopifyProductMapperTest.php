@@ -95,4 +95,28 @@ class ShopifyProductMapperTest extends TestCase
         $this->assertArrayNotHasKey('vendor', $product);
         $this->assertArrayNotHasKey('compare_at_price', $product['variants'][0]);
     }
+
+    public function test_it_maps_images_weight_and_fulfillment_service(): void
+    {
+        $product = ShopifyProductMapper::map([
+            'Title' => 'Full',
+            'Variant Price' => '9.99',
+            'Variant Fulfillment Service' => 'manual',
+            'Variant Weight' => '1.2',
+            'Variant Weight Unit' => 'kg',
+            'Image Src' => 'https://example.com/a.jpg',
+            'Image Position' => '1',
+            'Image Alt Text' => 'A photo',
+        ]);
+
+        $this->assertSame('manual', $product['variants'][0]['fulfillment_service']);
+        $this->assertSame(1.2, $product['variants'][0]['weight']);
+        $this->assertSame('kg', $product['variants'][0]['weight_unit']);
+
+        $this->assertSame([
+            'src' => 'https://example.com/a.jpg',
+            'position' => 1,
+            'alt' => 'A photo',
+        ], $product['images'][0]);
+    }
 }

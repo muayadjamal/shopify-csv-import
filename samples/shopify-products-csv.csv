@@ -1,0 +1,6 @@
+Handle,Title,Body (HTML),Vendor,Type,Tags,Published,Variant SKU,Variant Price,Variant Compare At Price,Variant Requires Shipping,Variant Taxable,Variant Inventory Tracker,Variant Inventory Qty,Variant Inventory Policy
+classic-tee,Classic Cotton Tee,"<p>Soft 100% cotton t-shirt.</p>",Acme Apparel,Shirts,"cotton,summer",TRUE,TEE-001,19.99,29.99,TRUE,TRUE,shopify,120,deny
+canvas-tote,Canvas Tote Bag,"<p>Durable everyday tote.</p>",Acme Apparel,Bags,"canvas,eco",TRUE,TOTE-002,24.50,,TRUE,TRUE,shopify,60,deny
+ceramic-mug,Ceramic Coffee Mug,"<p>350ml stoneware mug.</p>",Acme Home,Drinkware,"kitchen,ceramic",TRUE,MUG-003,12.00,15.00,TRUE,TRUE,shopify,200,deny
+wool-beanie,Merino Wool Beanie,"<p>Warm merino wool beanie.</p>",Acme Apparel,Hats,"winter,wool",TRUE,BEANIE-004,27.00,,TRUE,TRUE,shopify,45,continue
+steel-bottle,Insulated Steel Bottle,"<p>Keeps drinks cold 24h.</p>",Acme Outdoors,Drinkware,"outdoor,steel",TRUE,BOTL-005,32.00,40.00,TRUE,TRUE,shopify,80,deny

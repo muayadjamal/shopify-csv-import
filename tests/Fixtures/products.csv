@@ -1,0 +1,4 @@
+Handle,Title,Body (HTML),Vendor,Type,Tags,Published,Variant SKU,Variant Price,Variant Compare At Price,Variant Requires Shipping,Variant Taxable,Variant Inventory Tracker,Variant Inventory Qty,Variant Inventory Policy
+good-one,Good One,"<p>First</p>",Acme,Shirts,"a,b",TRUE,SKU1,10.00,12.00,TRUE,TRUE,shopify,10,deny
+good-two,Good Two,"<p>Second</p>",Acme,Bags,"c",FALSE,SKU2,20.00,,TRUE,FALSE,shopify,5,continue
+missing-price,,"<p>Broken</p>",Acme,Hats,"",TRUE,SKU3,,,TRUE,TRUE,shopify,0,deny

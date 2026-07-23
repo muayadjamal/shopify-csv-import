@@ -15,6 +15,7 @@ class ImportRunInfolist
         return $schema
             ->components([
                 Section::make('Import')
+                    ->columnSpanFull()
                     ->columns(3)
                     ->schema([
                         TextEntry::make('original_filename')
@@ -35,6 +36,7 @@ class ImportRunInfolist
                             ->color(fn (int $state): string => $state > 0 ? 'danger' : 'gray'),
                     ]),
                 Section::make('Timestamps')
+                    ->columnSpanFull()
                     ->columns(3)
                     ->schema([
                         TextEntry::make('started_at')->dateTime()->placeholder('—'),
@@ -42,6 +44,7 @@ class ImportRunInfolist
                         TextEntry::make('created_at')->dateTime(),
                     ]),
                 Section::make('Error')
+                    ->columnSpanFull()
                     ->visible(fn ($record): bool => filled($record->error_message))
                     ->schema([
                         TextEntry::make('error_message')

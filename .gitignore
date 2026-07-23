@@ -31,3 +31,4 @@ yarn-error.log
 # Assessment brief + raw source file (not for public repo)
 /*.pdf
 /shopify-products-csv (*.csv
+/.playwright-mcp

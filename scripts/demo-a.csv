@@ -1,0 +1,11 @@
+Handle,Title,Body HTML,Vendor,Type,Tags,Published,Variant SKU,Variant Price,Image Src
+demo-desk-lamp,Demo Desk Lamp,<p>Adjustable LED lamp.</p>,DemoCo,Lighting,"demo",TRUE,DEMO-LAMP,29.99,https://images.unsplash.com/photo-1534109287734-9595ff4428d5
+demo-ceramic-mug,Demo Ceramic Mug,<p>Stoneware mug.</p>,DemoCo,Kitchen,"demo",TRUE,DEMO-MUG,12.50,
+demo-tote-bag,Demo Tote Bag,<p>Canvas tote.</p>,DemoCo,Bags,"demo",TRUE,DEMO-TOTE,18.00,
+demo-water-bottle,Demo Water Bottle,<p>Insulated bottle.</p>,DemoCo,Kitchen,"demo",TRUE,DEMO-BOTTLE,24.00,
+demo-wool-beanie,Demo Wool Beanie,<p>Merino beanie.</p>,DemoCo,Apparel,"demo",TRUE,DEMO-BEANIE,27.00,
+invalid-no-title,,<p>Missing title and price.</p>,DemoCo,Misc,"demo",TRUE,DEMO-BAD1,,
+demo-yoga-mat,Demo Yoga Mat,<p>Eco yoga mat.</p>,DemoCo,Fitness,"demo",TRUE,DEMO-MAT,45.99,
+demo-coffee-beans,Demo Coffee Beans,<p>Roasted beans.</p>,DemoCo,Food,"demo",TRUE,DEMO-BEANS,14.99,
+invalid-no-price,No Price Product,<p>Missing price.</p>,DemoCo,Misc,"demo",TRUE,DEMO-BAD2,,
+demo-wall-clock,Demo Wall Clock,<p>Minimalist clock.</p>,DemoCo,Home Decor,"demo",TRUE,DEMO-CLOCK,49.99,

@@ -16,6 +16,7 @@ class ImportLogInfolist
         return $schema
             ->components([
                 Section::make()
+                    ->columnSpanFull()
                     ->columns(2)
                     ->schema([
                         TextEntry::make('created_at')->label('Time')->dateTime(),

@@ -1,0 +1,6 @@
+Handle,Title,Body HTML,Vendor,Type,Tags,Published,Variant SKU,Variant Price,Image Src
+demo-b-headphones,Demo Headphones,<p>Wireless.</p>,DemoCo,Electronics,"demo",TRUE,DEMO-HP,59.00,
+demo-b-notebook,Demo Notebook,<p>A5 dotted.</p>,DemoCo,Stationery,"demo",TRUE,DEMO-NB,9.50,
+demo-b-bottle,Demo Sports Bottle,<p>750ml.</p>,DemoCo,Kitchen,"demo",TRUE,DEMO-SB,15.00,
+demo-b-broken,,,DemoCo,,,TRUE,,,
+demo-b-candle,Demo Soy Candle,<p>Lavender.</p>,DemoCo,Home,"demo",TRUE,DEMO-CANDLE,16.00,

@@ -17,7 +17,7 @@ Built for the Vrhunec technical assessment (CSV to Shopify Product Import System
 ### Bonus features (all implemented)
 
 - **Update product (upsert)**: products are matched by `handle` — an existing product is **updated** instead of duplicated (GraphQL `productSet`).
-- **Logging**: every import event is written to an `import_logs` table (viewable per-run and globally in the dashboard) **and** to a dedicated `import` log channel on disk, browsable with the bundled **log viewer** (`opcodesio/log-viewer`) at `/log-viewer`.
+- **Logging**: every import event is written to an `import_logs` table — the in-dashboard **log viewer** (Filament "Import Logs", plus a per-run log tab) — **and** to a dedicated `import` log channel on disk (`storage/logs/import-*.log`).
 - **Error notification system**: when a run finishes with failed rows (or fails outright), admin users receive a **Filament database notification** (the panel bell).
 - **GraphQL**: the entire Shopify integration uses GraphQL queries/mutations with GraphQL error handling (`userErrors` + throttling/`THROTTLED` back-off).
 
@@ -38,7 +38,7 @@ Built for the Vrhunec technical assessment (CSV to Shopify Product Import System
 | Queue              | Database driver                                               |
 | Database           | SQLite (default; any Laravel-supported DB works)              |
 | CSV parsing        | `league/csv` (streaming) — see note below                     |
-| Logging / viewer   | `import_logs` table + `import` log channel + `opcodesio/log-viewer` |
+| Logging / viewer   | `import_logs` table (Filament log viewer) + `import` log channel on disk |
 | Tests / quality    | PHPUnit, Pint, Larastan (PHPStan level 7)                     |
 
 ## Architecture
@@ -139,8 +139,7 @@ composer dev
 1. Log in at `/login` with `test@example.com` / `password`.
 2. Go to **Imports → New import** (`/imports/create`) and upload a CSV.
 3. You're redirected to the run's status page, which polls until the import finishes and links each product into Shopify.
-4. Review runs, per-row results, the event log, and stats in the admin panel at `/admin`.
-5. Browse raw log files at `/log-viewer` (linked from the admin sidebar as "Log files").
+4. Review runs, per-row results, the event log (Import Logs), and stats in the admin panel at `/admin`.
 
 A ready-to-use sample CSV (the assessment's 10 products, with images and weights) is committed at [`samples/shopify-products-csv.csv`](samples/shopify-products-csv.csv) — upload it as-is to try the flow.
 
@@ -169,12 +168,21 @@ Tests cover the column mapper (incl. images/weight/fulfillment), the GraphQL `pr
 - **Laravel 13 instead of 12.** The brief asked for Laravel 12; the current React starter kit ships on Laravel 13, and the recruiter was asked whether latest is acceptable. All APIs used are stable across 12/13.
 - **GraphQL over REST.** The bonus asked for GraphQL, so the *only* Shopify integration is GraphQL (`shopify/shopify-api` SDK), behind a `ShopifyProductImporter` interface so the transport is swappable and easily faked in tests.
 - **Upsert by handle.** `productSet` with a `handle` identifier creates or updates, satisfying the "update product if it exists" bonus and making retries safe.
-- **Custom (private) app auth.** The SDK is initialised in private-app mode with the fixed Admin API token; the API key/secret are unused placeholders.
+- **Custom-app token auth.** The SDK sends the fixed Admin API access token as `X-Shopify-Access-Token` (`isPrivateApp: false`); the API key/secret passed to `Context::initialize` are unused placeholders.
 - **Single default variant per row.** The standard Shopify product CSV is one variant per row, mapped to the `Default Title` option. Multi-variant/option rows are out of scope.
 - **Inventory quantity** is not set via GraphQL (it requires a location-scoped inventory mutation); price, SKU, policy, taxable, weight, and images are.
 - **`maatwebsite/excel` was evaluated but not used:** its `phpspreadsheet` dependency requires PHP `< 8.5` and it targets Laravel ≤ 12, so it is incompatible with this stack (PHP 8.5 / Laravel 13). `league/csv` provides the same clean, streaming API and is used instead.
 - **Auth.** Import and admin routes are authenticated (the starter kit's Fortify auth); a demo user is seeded.
 
-## Video
+## Demo video
 
-A short walkthrough of the working application (upload → async import → live status → products in the Shopify collection → admin panel, logs, and notifications) is included with the submission.
+A recorded walkthrough is included as [`demo.mp4`](demo.mp4) — it covers login, the live dashboard, upload with client-side validation, the asynchronous import updating live, per-row results, **light and dark mode**, and the Filament admin panel (runs, event log, chart, notifications).
+
+It is generated automatically (Playwright screen recording with an on-screen click indicator and step captions, converted to MP4 with ffmpeg). To regenerate:
+
+```bash
+# one-time: npm i -D playwright && npx playwright install chromium   (ffmpeg also required)
+php artisan serve            # in one terminal
+php artisan queue:work       # in another
+./scripts/record-demo.sh     # writes demo.mp4
+```

@@ -29,6 +29,14 @@ class ImportRunResource extends Resource
 
     protected static ?string $modelLabel = 'import run';
 
+    /**
+     * @return array<int, string>
+     */
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['original_filename'];
+    }
+
     public static function infolist(Schema $schema): Schema
     {
         return ImportRunInfolist::configure($schema);

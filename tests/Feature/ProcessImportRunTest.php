@@ -112,14 +112,17 @@ class ProcessImportRunTest extends TestCase
         $this->assertTrue($run->logs()->where('event', 'row.skipped')->exists());
     }
 
-    public function test_it_notifies_users_when_a_run_has_failures(): void
+    public function test_it_notifies_admins_when_a_run_has_failures(): void
     {
-        $user = User::factory()->create();
+        $admin = User::factory()->admin()->create();
+        $regular = User::factory()->create();
         $run = $this->makeRunFromFixture();
 
         $this->runJob($run);
 
-        $this->assertSame(1, $user->notifications()->count());
+        // Only admins (panel users) are notified — not every user.
+        $this->assertSame(1, $admin->notifications()->count());
+        $this->assertSame(0, $regular->notifications()->count());
     }
 
     public function test_it_marks_the_run_failed_when_the_file_is_unreadable(): void

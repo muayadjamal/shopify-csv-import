@@ -161,7 +161,8 @@ return [
     */
 
     'features' => [
-        Features::registration(),
+        // Public registration is disabled — this is an internal operator tool;
+        // accounts are provisioned by an administrator (see DatabaseSeeder).
         Features::resetPasswords(),
         Features::emailVerification(),
         Features::twoFactorAuthentication([

@@ -15,9 +15,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::query()->firstOrCreate(
+        $user = User::query()->firstOrCreate(
             ['email' => 'test@example.com'],
             ['name' => 'Test User', 'password' => 'password'],
         );
+
+        // Grant admin (Filament panel) access to the seeded operator.
+        $user->forceFill(['is_admin' => true])->save();
     }
 }

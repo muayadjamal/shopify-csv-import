@@ -6,6 +6,7 @@ namespace Database\Factories;
 
 use App\Enums\ImportStatus;
 use App\Models\ImportRun;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -18,6 +19,7 @@ class ImportRunFactory extends Factory
     public function definition(): array
     {
         return [
+            'user_id' => User::factory(),
             'original_filename' => fake()->slug().'.csv',
             'disk' => 'local',
             'path' => 'imports/'.fake()->uuid().'.csv',

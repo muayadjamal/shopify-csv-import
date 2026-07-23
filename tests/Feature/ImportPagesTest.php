@@ -15,11 +15,14 @@ class ImportPagesTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_the_index_page_lists_runs(): void
+    public function test_the_index_page_lists_the_current_users_runs(): void
     {
+        $user = User::factory()->create();
+        ImportRun::factory()->for($user)->completed()->create();
+        // A run owned by someone else must not appear.
         ImportRun::factory()->completed()->create();
 
-        $this->actingAs(User::factory()->create())
+        $this->actingAs($user)
             ->get(route('imports.index'))
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->component('imports/index')
@@ -28,13 +31,23 @@ class ImportPagesTest extends TestCase
             );
     }
 
+    public function test_a_user_cannot_view_another_users_run(): void
+    {
+        $run = ImportRun::factory()->completed()->create();
+
+        $this->actingAs(User::factory()->create())
+            ->get(route('imports.show', $run))
+            ->assertForbidden();
+    }
+
     public function test_the_show_page_exposes_a_flat_run_with_a_products_array(): void
     {
-        $run = ImportRun::factory()->completed(2)->create();
+        $user = User::factory()->create();
+        $run = ImportRun::factory()->for($user)->completed(2)->create();
         ImportedProduct::factory()->for($run)->create(['row_number' => 1]);
         ImportedProduct::factory()->for($run)->create(['row_number' => 2]);
 
-        $this->actingAs(User::factory()->create())
+        $this->actingAs($user)
             ->get(route('imports.show', $run))
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->component('imports/show')

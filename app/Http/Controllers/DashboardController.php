@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Enums\ImportStatus;
-use App\Enums\ProductImportStatus;
-use App\Models\ImportedProduct;
 use App\Models\ImportRun;
 use Illuminate\Http\JsonResponse;
 use Inertia\Inertia;
@@ -26,9 +24,10 @@ class DashboardController extends Controller
      */
     public function stats(): JsonResponse
     {
-        $runs = ImportRun::query();
+        $userId = request()->user()->id;
+        $runs = fn () => ImportRun::query()->where('user_id', $userId);
 
-        $ongoing = ImportRun::query()
+        $ongoing = $runs()
             ->whereIn('status', [ImportStatus::Pending, ImportStatus::Processing])
             ->latest()
             ->limit(5)
@@ -44,12 +43,12 @@ class DashboardController extends Controller
 
         return response()->json([
             'totals' => [
-                'runs' => (clone $runs)->count(),
-                'completed' => (clone $runs)->where('status', ImportStatus::Completed)->count(),
-                'processing' => (clone $runs)->whereIn('status', [ImportStatus::Pending, ImportStatus::Processing])->count(),
-                'failed' => (clone $runs)->where('status', ImportStatus::Failed)->count(),
-                'products_imported' => ImportedProduct::where('status', ProductImportStatus::Success)->count(),
-                'failed_rows' => ImportedProduct::where('status', ProductImportStatus::Failed)->count(),
+                'runs' => $runs()->count(),
+                'completed' => $runs()->where('status', ImportStatus::Completed)->count(),
+                'processing' => $runs()->whereIn('status', [ImportStatus::Pending, ImportStatus::Processing])->count(),
+                'failed' => $runs()->where('status', ImportStatus::Failed)->count(),
+                'products_imported' => (int) $runs()->sum('successful_rows'),
+                'failed_rows' => (int) $runs()->sum('failed_rows'),
             ],
             'ongoing' => $ongoing,
         ]);

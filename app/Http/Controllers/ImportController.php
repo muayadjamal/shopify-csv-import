@@ -16,11 +16,12 @@ use Inertia\Response;
 class ImportController extends Controller
 {
     /**
-     * List every import run, most recent first.
+     * List the current user's import runs, most recent first.
      */
     public function index(): Response
     {
         $runs = ImportRun::query()
+            ->where('user_id', request()->user()->id)
             ->latest()
             ->limit(50)
             ->get();
@@ -46,6 +47,7 @@ class ImportController extends Controller
         $file = $request->file('file');
 
         $run = ImportRun::create([
+            'user_id' => $request->user()->id,
             'original_filename' => $file->getClientOriginalName(),
             'disk' => 'local',
             'path' => $file->store('imports', 'local'),
@@ -64,6 +66,8 @@ class ImportController extends Controller
      */
     public function show(ImportRun $importRun): Response
     {
+        $this->authorizeOwner($importRun);
+
         $importRun->load(['products' => fn ($query) => $query->orderBy('row_number')]);
 
         return Inertia::render('imports/show', [
@@ -76,8 +80,18 @@ class ImportController extends Controller
      */
     public function status(ImportRun $importRun): ImportRunResource
     {
+        $this->authorizeOwner($importRun);
+
         $importRun->load(['products' => fn ($query) => $query->orderBy('row_number')]);
 
         return new ImportRunResource($importRun);
+    }
+
+    /**
+     * Ensure the run belongs to the current user.
+     */
+    private function authorizeOwner(ImportRun $importRun): void
+    {
+        abort_unless($importRun->user_id === request()->user()->id, 403);
     }
 }

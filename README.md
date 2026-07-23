@@ -172,7 +172,7 @@ Tests cover the column mapper (incl. images/weight/fulfillment), the GraphQL `pr
 - **Single default variant per row.** The standard Shopify product CSV is one variant per row, mapped to the `Default Title` option. Multi-variant/option rows are out of scope.
 - **Inventory quantity** is not set via GraphQL (it requires a location-scoped inventory mutation); price, SKU, policy, taxable, weight, and images are.
 - **`maatwebsite/excel` was evaluated but not used:** its `phpspreadsheet` dependency requires PHP `< 8.5` and it targets Laravel ≤ 12, so it is incompatible with this stack (PHP 8.5 / Laravel 13). `league/csv` provides the same clean, streaming API and is used instead.
-- **Auth.** Import and admin routes are authenticated (the starter kit's Fortify auth); a demo user is seeded.
+- **Auth & access control.** All app and admin routes require authentication. Public registration is **disabled** (internal tool — accounts are provisioned; a demo admin is seeded). The Filament admin panel is restricted to users with `is_admin = true` (`canAccessPanel`). Import runs are **owned by the uploading user**: the website scopes lists/detail/status to the owner (403 otherwise), while the admin panel retains a global view. Uploads are rate-limited (`throttle:20,1`). Set `APP_DEBUG=false` in production.
 
 ## Demo video
 

@@ -22,6 +22,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property string $email
  * @property Carbon|null $email_verified_at
  * @property string $password
+ * @property bool $is_admin
  * @property string|null $two_factor_secret
  * @property string|null $two_factor_recovery_codes
  * @property Carbon|null $two_factor_confirmed_at
@@ -37,11 +38,11 @@ class User extends Authenticatable implements FilamentUser, PasskeyUser
     use HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
 
     /**
-     * Any authenticated user may access the admin panel in this assessment app.
+     * Only administrators may access the Filament admin panel.
      */
     public function canAccessPanel(Panel $panel): bool
     {
-        return true;
+        return (bool) $this->is_admin;
     }
 
     /**
@@ -54,6 +55,7 @@ class User extends Authenticatable implements FilamentUser, PasskeyUser
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_admin' => 'boolean',
             'two_factor_confirmed_at' => 'datetime',
         ];
     }

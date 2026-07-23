@@ -47,6 +47,9 @@ class ImportLogger
      */
     public function log(LogLevel $level, string $event, string $message, array $context = [], ?ImportedProduct $product = null): ImportLog
     {
+        // Strip CR/LF so user-supplied values (e.g. filenames) cannot forge log lines.
+        $message = preg_replace('/[\r\n]+/', ' ', $message) ?? $message;
+
         $context = [
             'import_run_id' => $this->run->id,
             ...$context,

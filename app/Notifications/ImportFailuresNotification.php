@@ -17,9 +17,11 @@ class ImportFailuresNotification
 {
     public static function dispatchFor(ImportRun $run): void
     {
-        $users = User::all();
+        // Only admins can see the panel bell — notify them (oversight), not
+        // every user (which would leak other users' import filenames).
+        $admins = User::query()->where('is_admin', true)->get();
 
-        if ($users->isEmpty()) {
+        if ($admins->isEmpty()) {
             return;
         }
 
@@ -36,6 +38,6 @@ class ImportFailuresNotification
                     ->url(route('filament.admin.resources.import-runs.view', $run))
                     ->markAsRead(),
             ])
-            ->sendToDatabase($users);
+            ->sendToDatabase($admins);
     }
 }

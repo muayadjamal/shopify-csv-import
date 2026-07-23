@@ -8,6 +8,7 @@ use App\Enums\ImportStatus;
 use Database\Factories\ImportRunFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
@@ -15,6 +16,7 @@ use Illuminate\Support\Carbon;
  * A single CSV upload and its asynchronous import into Shopify.
  *
  * @property int $id
+ * @property int|null $user_id
  * @property string $original_filename
  * @property string $disk
  * @property string $path
@@ -33,6 +35,7 @@ class ImportRun extends Model
     use HasFactory;
 
     protected $fillable = [
+        'user_id',
         'original_filename',
         'disk',
         'path',
@@ -57,6 +60,14 @@ class ImportRun extends Model
             'started_at' => 'datetime',
             'completed_at' => 'datetime',
         ];
+    }
+
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 
     /**

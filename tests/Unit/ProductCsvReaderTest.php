@@ -1,39 +1,23 @@
 <?php
 
-declare(strict_types=1);
-
-namespace Tests\Unit;
-
 use App\Support\Csv\ProductCsvReader;
-use PHPUnit\Framework\TestCase;
 
-class ProductCsvReaderTest extends TestCase
-{
-    private string $fixture = __DIR__.'/../Fixtures/products.csv';
+$fixture = __DIR__.'/../Fixtures/products.csv';
 
-    public function test_it_counts_data_rows_excluding_the_header(): void
-    {
-        $reader = ProductCsvReader::fromPath($this->fixture);
+test('it counts data rows excluding the header', function () use ($fixture) {
+    expect(ProductCsvReader::fromPath($fixture)->count())->toBe(3);
+});
 
-        $this->assertSame(3, $reader->count());
-    }
+test('it yields rows keyed by header with 1-based numbers', function () use ($fixture) {
+    $rows = iterator_to_array(ProductCsvReader::fromPath($fixture)->rows());
 
-    public function test_it_yields_rows_keyed_by_header_with_1_based_numbers(): void
-    {
-        $reader = ProductCsvReader::fromPath($this->fixture);
+    expect(array_keys($rows))->toBe([1, 2, 3])
+        ->and($rows[1]['Title'])->toBe('Good One')
+        ->and($rows[2]['Variant SKU'])->toBe('SKU2');
+});
 
-        $rows = iterator_to_array($reader->rows());
+test('it exposes the header row', function () use ($fixture) {
+    $headers = ProductCsvReader::fromPath($fixture)->headers();
 
-        $this->assertSame([1, 2, 3], array_keys($rows));
-        $this->assertSame('Good One', $rows[1]['Title']);
-        $this->assertSame('SKU2', $rows[2]['Variant SKU']);
-    }
-
-    public function test_it_exposes_the_header_row(): void
-    {
-        $reader = ProductCsvReader::fromPath($this->fixture);
-
-        $this->assertContains('Handle', $reader->headers());
-        $this->assertContains('Variant Price', $reader->headers());
-    }
-}
+    expect($headers)->toContain('Handle', 'Variant Price');
+});

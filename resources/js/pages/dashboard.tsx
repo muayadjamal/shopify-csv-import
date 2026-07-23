@@ -24,7 +24,11 @@ interface DashboardStats {
 
 const POLL_INTERVAL_MS = 3000;
 
-export default function Dashboard({ stats: initialStats }: { stats: DashboardStats }) {
+export default function Dashboard({
+    stats: initialStats,
+}: {
+    stats: DashboardStats;
+}) {
     const [stats, setStats] = useState<DashboardStats>(initialStats);
 
     useEffect(() => {
@@ -47,11 +51,32 @@ export default function Dashboard({ stats: initialStats }: { stats: DashboardSta
             <div className="flex w-full flex-col gap-6 p-4">
                 <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
                     <StatCard label="Total imports" value={totals.runs} />
-                    <StatCard label="Completed" value={totals.completed} accent="text-emerald-600" />
-                    <StatCard label="In progress" value={totals.processing} accent="text-amber-600" live={totals.processing > 0} />
-                    <StatCard label="Products imported" value={totals.products_imported} accent="text-emerald-600" />
-                    <StatCard label="Failed rows" value={totals.failed_rows} accent="text-red-600" />
-                    <StatCard label="Failed imports" value={totals.failed} accent="text-red-600" />
+                    <StatCard
+                        label="Completed"
+                        value={totals.completed}
+                        accent="text-emerald-600"
+                    />
+                    <StatCard
+                        label="In progress"
+                        value={totals.processing}
+                        accent="text-amber-600"
+                        live={totals.processing > 0}
+                    />
+                    <StatCard
+                        label="Products imported"
+                        value={totals.products_imported}
+                        accent="text-emerald-600"
+                    />
+                    <StatCard
+                        label="Failed rows"
+                        value={totals.failed_rows}
+                        accent="text-red-600"
+                    />
+                    <StatCard
+                        label="Failed imports"
+                        value={totals.failed}
+                        accent="text-red-600"
+                    />
                 </div>
 
                 <Card>
@@ -78,13 +103,21 @@ export default function Dashboard({ stats: initialStats }: { stats: DashboardSta
                                     className="flex flex-col gap-1 rounded-lg border border-sidebar-border/70 p-3 hover:bg-muted/50 dark:border-sidebar-border"
                                 >
                                     <div className="flex items-center justify-between text-sm">
-                                        <span className="truncate font-medium">{run.original_filename}</span>
+                                        <span className="truncate font-medium">
+                                            {run.original_filename}
+                                        </span>
                                         <span className="text-muted-foreground">
-                                            {run.status} · {run.processed}/{run.total ?? '—'}
+                                            {run.status} · {run.processed}/
+                                            {run.total ?? '—'}
                                         </span>
                                     </div>
                                     <div className="h-2 w-full overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-700">
-                                        <div className="h-full bg-primary transition-all" style={{ width: `${run.progress}%` }} />
+                                        <div
+                                            className="h-full bg-primary transition-all"
+                                            style={{
+                                                width: `${run.progress}%`,
+                                            }}
+                                        />
                                     </div>
                                 </Link>
                             ))
@@ -96,14 +129,28 @@ export default function Dashboard({ stats: initialStats }: { stats: DashboardSta
     );
 }
 
-function StatCard({ label, value, accent, live }: { label: string; value: number; accent?: string; live?: boolean }) {
+function StatCard({
+    label,
+    value,
+    accent,
+    live,
+}: {
+    label: string;
+    value: number;
+    accent?: string;
+    live?: boolean;
+}) {
     return (
         <div className="rounded-xl border border-sidebar-border/70 p-4 dark:border-sidebar-border">
             <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">{label}</span>
-                {live && <span className="size-2 animate-pulse rounded-full bg-amber-500" />}
+                {live && (
+                    <span className="size-2 animate-pulse rounded-full bg-amber-500" />
+                )}
             </div>
-            <div className={`mt-2 text-3xl font-semibold ${accent ?? ''}`}>{value}</div>
+            <div className={`mt-2 text-3xl font-semibold ${accent ?? ''}`}>
+                {value}
+            </div>
         </div>
     );
 }

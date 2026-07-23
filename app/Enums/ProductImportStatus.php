@@ -16,7 +16,6 @@ enum ProductImportStatus: string implements HasColor, HasLabel
     case Processing = 'processing';
     case Success = 'success';
     case Failed = 'failed';
-    case Skipped = 'skipped';
 
     public function label(): string
     {
@@ -25,7 +24,6 @@ enum ProductImportStatus: string implements HasColor, HasLabel
             self::Processing => 'Processing',
             self::Success => 'Successful',
             self::Failed => 'Failed',
-            self::Skipped => 'Skipped',
         };
     }
 
@@ -36,7 +34,6 @@ enum ProductImportStatus: string implements HasColor, HasLabel
             self::Processing => 'warning',
             self::Success => 'success',
             self::Failed => 'danger',
-            self::Skipped => 'info',
         };
     }
 

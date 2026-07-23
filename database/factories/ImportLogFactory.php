@@ -27,12 +27,4 @@ class ImportLogFactory extends Factory
             'context' => [],
         ];
     }
-
-    public function error(): static
-    {
-        return $this->state(fn () => [
-            'level' => LogLevel::Error,
-            'event' => 'row.failed',
-        ]);
-    }
 }

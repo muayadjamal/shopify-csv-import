@@ -43,14 +43,4 @@ class ImportRunFactory extends Factory
             'completed_at' => now(),
         ]);
     }
-
-    public function failed(): static
-    {
-        return $this->state(fn () => [
-            'status' => ImportStatus::Failed,
-            'error_message' => 'The uploaded file could not be parsed.',
-            'started_at' => now()->subMinute(),
-            'completed_at' => now(),
-        ]);
-    }
 }
